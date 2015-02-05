@@ -1,0 +1,108 @@
+<html>
+<head>
+	<title>TEST</title>
+
+	<script type="text/javascript" src="./require.js"></script>
+	<script type="text/javascript" src="./jquery.js"></script>
+	<script type="text/javascript" src="./qwerty-hancock.js"></script>
+	
+</head>
+<body>
+	<div id="Keyboard"></div>
+	<script type="text/javascript">
+
+	require.config({
+		baseUrl : "../src",
+		paths : {
+			"text" : "../tests/text",
+			"Tone" : "../tests/Tone.min"
+		}
+	});
+
+	require(["dat/gui/GUI", "Tone"], function(GUI, Tone){
+		var gui = new GUI();
+
+		var synth = new Tone.MonoSynth().toMaster();
+
+		window.gui = gui;
+
+		window.synth = synth;
+
+		//oscillator
+		gui.add(synth.oscillator, "type", ["sine", "square", "triangle", "sawtooth", "pwm", "pulse"]).name("Oscillator Type");
+		//envelope
+		var envelopeGUI = gui.addFolder("Envelope");
+		envelopeGUI.open();
+		envelopeGUI.add(synth.envelope, "attack").min(0);
+		envelopeGUI.add(synth.envelope, "decay").min(0);
+		envelopeGUI.add(synth.envelope, "sustain", 0, 1).log();
+		envelopeGUI.add(synth.envelope, "release").min(0);
+		//filterEnvelope
+		var filterEnvelopeGUI = gui.addFolder("Filter Envelope");
+		filterEnvelopeGUI.open();
+		filterEnvelopeGUI.add(synth.filterEnvelope, "attack").min(0);
+		filterEnvelopeGUI.add(synth.filterEnvelope, "decay").min(0);
+		filterEnvelopeGUI.add(synth.filterEnvelope, "sustain", 0, 1).log();
+		filterEnvelopeGUI.add(synth.filterEnvelope, "release").min(0);
+		filterEnvelopeGUI.add(synth.filterEnvelope, "min", 20, 20000).log();
+		filterEnvelopeGUI.add(synth.filterEnvelope, "max", 20, 20000).log();
+
+		var Notes = {
+			"J" : "C4",
+			"K" : "E4",
+			"L" : "G4",
+		};
+
+		var NotesDown = {
+			"J" : false,
+			"K" : false,
+			"L" : false,
+		};
+
+		var notesGUI = gui.addFolder("Keyboard");
+		notesGUI.open();
+		notesGUI.add(Notes, "J");
+		notesGUI.add(Notes, "K");
+		notesGUI.add(Notes, "L");
+
+		$(window).keydown(function(e){
+			if (e.which === 74){
+				e.preventDefault();
+				if (!NotesDown.J){
+					NotesDown.J = true;
+					synth.triggerAttack(Notes.J);
+				}
+			} else if (e.which === 75){
+				e.preventDefault();
+				if (!NotesDown.K){
+					NotesDown.K = true;
+					synth.triggerAttack(Notes.K);
+				}
+			} else if (e.which === 76){
+				e.preventDefault();
+				if (!NotesDown.L){
+					NotesDown.L = true;
+					synth.triggerAttack(Notes.L);
+				}
+			}
+		});
+
+		$(window).keyup(function(e){
+			if (e.which === 74 || e.which === 75 || e.which === 76){
+				e.preventDefault();
+				synth.triggerRelease();
+				if (e.which === 74){
+					NotesDown.J = false;
+				} else if (e.which === 75){
+					e.preventDefault();
+					NotesDown.K = false;
+				} else if (e.which === 76){
+					e.preventDefault();
+					NotesDown.L = false;
+				}
+			}
+		});
+	});
+	</script>
+</body>
+</html>
