@@ -536,6 +536,48 @@ define([
 
         },
 
+         /**
+         * @param object
+         * @param property
+         * @returns {dat.controllers.ColorController} The new controller that was added.
+         * @instance
+         */
+        addSignal: function(object, property, min, max) {
+
+          return add(
+              this,
+              object,
+              property,
+              {
+                signal: true,
+                factoryArgs: Array.prototype.slice.call(arguments, 2)
+              }
+          );
+
+        },
+
+        /**
+         * @param object
+         * @param property
+         * @returns {dat.controllers.FunctionController} The new controller that was added.
+         * @instance
+         */
+        addButton: function(name, callback) {
+
+          var object = {};
+          object[name] = callback;
+
+          return add(
+              this,
+              object,
+              name,
+              {
+                factoryArgs: Array.prototype.slice.call(arguments, 2)
+              }
+          );
+
+        },
+
         /**
          * @param controller
          * @instance
@@ -802,15 +844,20 @@ define([
       throw new Error("Object " + object + " has no property \"" + property + "\"");
     }
 
-    var controller;
+    var controller, factoryArgs;
 
     if (params.color) {
 
       controller = new ColorController(object, property);
 
+    } else if (params.signal){
+
+      factoryArgs = [object[property],"value"].concat(params.factoryArgs);
+      controller = controllerFactory.apply(gui, factoryArgs);
+
     } else {
 
-      var factoryArgs = [object,property].concat(params.factoryArgs);
+      factoryArgs = [object,property].concat(params.factoryArgs);
       controller = controllerFactory.apply(gui, factoryArgs);
 
     }
@@ -825,7 +872,11 @@ define([
 
     var name = document.createElement('span');
     dom.addClass(name, 'property-name');
-    name.innerHTML = controller.property;
+    if (params.signal){
+      name.innerHTML = property;
+    } else {
+      name.innerHTML = controller.property;
+    }
 
     var container = document.createElement('div');
     container.appendChild(name);

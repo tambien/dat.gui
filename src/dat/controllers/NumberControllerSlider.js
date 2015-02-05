@@ -46,7 +46,7 @@ function(NumberController, dom, css, common, styleSheet) {
 
     this.__background = document.createElement('div');
     this.__foreground = document.createElement('div');
-    
+    this.__expScale = 1;
 
 
     dom.bind(this.__background, 'mousedown', onMouseDown);
@@ -70,7 +70,7 @@ function(NumberController, dom, css, common, styleSheet) {
       var width = dom.getWidth(_this.__background);
       
       _this.setValue(
-      	map(e.clientX, offset.left, offset.left + width, _this.__min, _this.__max)
+      	map(e.clientX, offset.left, offset.left + width, _this.__min, _this.__max, _this.__expScale)
       );
 
       return false;
@@ -110,8 +110,18 @@ function(NumberController, dom, css, common, styleSheet) {
 
         updateDisplay: function() {
           var pct = (this.getValue() - this.__min)/(this.__max - this.__min);
+          pct = Math.pow(pct, 1 / this.__expScale);
           this.__foreground.style.width = pct*100+'%';
           return NumberControllerSlider.superclass.prototype.updateDisplay.call(this);
+        },
+        /**
+         * make the values scale exponentially
+         *
+         * @returns {dat.controllers.NumberController} this
+         */
+        log : function(scaling) {
+          this.__expScale = scaling || 2;
+          return this;
         }
 
       }
@@ -120,8 +130,12 @@ function(NumberController, dom, css, common, styleSheet) {
 
   );
 
-	function map(v, i1, i2, o1, o2) {
-		return o1 + (o2 - o1) * ((v - i1) / (i2 - i1));
+	function map(v, i1, i2, o1, o2, e) {
+    var norm = (v - i1) / (i2 - i1);
+    norm = Math.max(norm, 0);
+    norm = Math.min(norm, 1);
+    norm = Math.pow(norm, e);
+		return o1 + (o2 - o1) * norm;
 	}
 
   return NumberControllerSlider;
